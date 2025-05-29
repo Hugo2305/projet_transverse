@@ -1,0 +1,10 @@
+- player.png
+- enemy.png
+- joystick_base.png
+- joystick_knob.png
+- rock.png
+- paper.png
+- scissors.png
+- background1.png
+- background2.png
+- background3.png

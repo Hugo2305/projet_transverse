@@ -18,7 +18,7 @@ def calcul_trajectoire(v0, angle, dt=0.01):
         print("Erreur : le temps de vol est invalide.")
         return [], []
 
-    # Discrétisation du temps (remplacé arange par linspace)
+    # Discrétisation du temps
     t = np.linspace(0, T, num=100)
 
     # Calcul des positions x et y
@@ -46,3 +46,5 @@ if len(x) > 0:
     plt.legend()
     plt.grid()
     plt.show()
+
+
