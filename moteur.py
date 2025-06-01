@@ -75,29 +75,14 @@ class Scene:
 class Objet:
     """
     Cette classe, qui a vocation à être héritée, définit 
-    les composantes de base d'un objet dans le moteur de jeu
-    qui sont les suivantes : 
-
-    ATTRIBUTS ->
-
-    * jeu          (Jeu) : référance à l'instance de la classe 'Jeu' 
-    * z_pos      (float) : ordre d'actualisation de l'objet, utile pour gérer
-    la superposition des objets (pour mettre l'arrière plan derrière
-    le joueur par exemple)
-    * vivant      (bool) : vérifie si l'objet est encore vivant 
-    * actualiser_ (bool) : vérifie si l'objet doit encore être actualisé
-    * etiquettes   (set) : permet d'individualiser les objets en leur collant
-    des etiquettes. L'utilisation d'un set assure qu'il n'y a pas de doublons.
-
-    METHODES ->
-    * actualiser : apelée si l'objet doit être actualisé
-
+    les composantes de base d'un objet dans le moteur de jeu.
     """
     def __init__(self, jeu, z_pos:float=0):
         self.jeu = jeu
         self.z_pos = z_pos
         self.vivant = True 
         self.actualiser_ = True
+        # Les etiquettes sont des textes qui permettent d'identifier les objets
         self.etiquettes = set({})
         
     def ajouter_etiquette(self, etiquette:str):
