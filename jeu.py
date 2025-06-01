@@ -6,6 +6,7 @@ Fichier principal, à exectuer pour lancer le jeu.
 import pygame, time
 
 from moteur import *
+from objets import *
 
 class Jeu:
     """
@@ -19,14 +20,22 @@ class Jeu:
     définir des fonctions a 40 paramètres répétitifs.
     """
     def __init__(self):
+        pygame.init()
         # Définition de l'ecran
-        self.ecran = pygame.display.set_mode((1280, 720))
+        self.ecran = pygame.display.set_mode((1280, 720), pygame.SCALED)
         # Définition de l'horloge
         self.horloge = pygame.time.Clock()
         # Initialisation du "dernier temps", utile au calcul du delta time
         self.dernier_temps = time.time()
+        
+        self.charger_images()
 
         self.scene = Scene(self)
+        self.scene.nouvelle_salle("menu")
+        self.scene.nouvelle_salle("jeu")
+        self.scene.lier(GestionnaireMenu(self), "menu")
+        self.scene.lier(GestionnaireJeu(self), "jeu")
+        self.scene.changer_salle("menu")
 
     def delta_time(self):
         """
@@ -59,10 +68,22 @@ class Jeu:
                 if event.type == pygame.QUIT:
                     # ... on le quitte
                     pygame.quit() 
+                if event.type == pygame.K_DOWN:
+                    if event.key == pygame.K_f:
+                        pygame.display.toggle_fullscreen()
             # Tour de l'horloge du jeu
             self.horloge.tick(1000)
             # Actualisation de l'affichage
             pygame.display.update()
+            self.scene.actualiser()
+            
+    def charger_images(self):
+        self.images = {
+            "fond_menu" : pygame.transform.scale(pygame.image.load("images/fond.png"), (1280, 720))
+        }
+        
+    def dessiner(self, surface, position):
+        self.ecran.blit(surface, position)
 
 # Démarrage du jeu et de sa boucle.
 Jeu().boucle()

@@ -37,7 +37,7 @@ class Scene:
         # Assignation des objets de la salle selon ceux qui ont été gardés
         self.salles[self.salle_actuelle] = objets
 
-    def filtrer(self, etiquette, salle=None):
+    def filtrer(self, etiquette:str, salle:str=None):
         """
         Permet de filtrer les objets présents dans une salle en fonction d'une
         etiquette demandée.
@@ -54,6 +54,20 @@ class Scene:
                 
         # Avant de les retourner
         return objets
+    
+    def lier(self, objet, salle:str=None):
+        """
+        Permet de lier un objet a une salle.
+        """
+        if salle == None:
+            salle = self.salle_actuelle
+        self.salles[salle].append(objet)
+        
+    def nouvelle_salle(self, nom:str):
+        self.salles[nom] = []
+        
+    def changer_salle(self, nom:str):
+        self.salle_actuelle = nom
     
 
 class Objet:
@@ -77,7 +91,7 @@ class Objet:
     * actualiser : apelée si l'objet doit être actualisé
 
     """
-    def __init__(self, jeu, z_pos:float):
+    def __init__(self, jeu, z_pos:float=0):
         self.jeu = jeu
         self.z_pos = z_pos
         self.vivant = True 
