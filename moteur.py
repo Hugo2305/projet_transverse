@@ -106,3 +106,21 @@ class Objet:
         cette méthode.
         """
         pass
+
+
+class Entitee(Objet):
+    """  
+    Les entitées sont les objets affectés par la physique du jeu.
+    """
+    def __init__(self, jeu, position):
+        super().__init__(jeu, 1)
+        # Initialisation des positions et vitesses
+        self.x, self.y = position
+        self.dx, self.dy = 0, 0
+        
+    def actualiser(self, scene):
+        # On actualiser les vitesses en prenant en compte 
+        # La rapidité du jeu en elle même
+        self.x += self.dx * self.jeu.dt 
+        self.y += self.dy * self.jeu.dt
+        
