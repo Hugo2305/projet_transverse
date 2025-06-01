@@ -3,7 +3,7 @@ Fichier principal, à exectuer pour lancer le jeu.
 """
 
 
-import pygame, time
+import pygame, time, sys
 
 from moteur import *
 from objets import *
@@ -20,21 +20,34 @@ class Jeu:
     définir des fonctions a 40 paramètres répétitifs.
     """
     def __init__(self):
+        # Initialisation classique de pygame
         pygame.init()
-        # Définition de l'ecran
         self.ecran = pygame.display.set_mode((1280, 720), pygame.SCALED)
-        # Définition de l'horloge
         self.horloge = pygame.time.Clock()
+        
+        self.souris_sur_boutton = False
+        
         # Initialisation du "dernier temps", utile au calcul du delta time
         self.dernier_temps = time.time()
         
+        # Chargement des ressources
         self.charger_images()
+        
+        TAILLE_BOUTTON = self.images["boutton"].get_size()
 
+        # Initialisation des scenes
         self.scene = Scene(self)
+        
         self.scene.nouvelle_salle("menu")
         self.scene.nouvelle_salle("jeu")
+        self.scene.nouvelle_salle("credits")
+        
         self.scene.lier(GestionnaireMenu(self), "menu")
         self.scene.lier(GestionnaireJeu(self), "jeu")
+        self.scene.lier(Boutton(self, (1280 // 2, 150), TAILLE_BOUTTON, 0), "menu")
+        self.scene.lier(Boutton(self, (1280 // 2, 350), TAILLE_BOUTTON, 1), "menu")
+        self.scene.lier(Boutton(self, (1280 // 2, 550), TAILLE_BOUTTON, 2), "menu")
+        
         self.scene.changer_salle("menu")
 
     def delta_time(self):
@@ -62,28 +75,50 @@ class Jeu:
         Boucle du jeu qui s'execute en continu jusqu'à la fin de celui-ci
         """
         while True:
+            self.delta_time()
+            self.logique_curseur()
+            self.souris_sur_boutton = False
             # Evenements pygame
             for event in pygame.event.get():
                 # Lorqu'on ferme le jeu ...
                 if event.type == pygame.QUIT:
                     # ... on le quitte
-                    pygame.quit() 
-                if event.type == pygame.K_DOWN:
-                    if event.key == pygame.K_f:
+                    self.quitter()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F11:
                         pygame.display.toggle_fullscreen()
             # Tour de l'horloge du jeu
             self.horloge.tick(1000)
             # Actualisation de l'affichage
             pygame.display.update()
+            self.ecran.fill((0, 0, 0))
             self.scene.actualiser()
+            
+    def quitter(self):
+        pygame.quit()
+        sys.exit()
+    
             
     def charger_images(self):
         self.images = {
-            "fond_menu" : pygame.transform.scale(pygame.image.load("images/fond.png"), (1280, 720))
+            "fond_menu" : pygame.transform.scale(pygame.image.load("images/fond.png"), (1280, 720)).convert_alpha(),
+            "boutton" : pygame.image.load("images/boutton.png").convert_alpha()
         }
         
     def dessiner(self, surface, position):
         self.ecran.blit(surface, position)
+        
+    def generer_texte(self, texte:str, police:pygame.font.Font, taille:int,  gras:bool=False, antialias:bool=True, couleur:Tuple[int, int, int]=(0, 0, 0)):
+        police_ = pygame.font.SysFont(police, taille, gras)
+        return police_.render(texte, antialias, couleur)
+        
+    def logique_curseur(self):
+        if self.souris_sur_boutton:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            
+
 
 # Démarrage du jeu et de sa boucle.
 Jeu().boucle()

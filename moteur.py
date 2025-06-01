@@ -25,8 +25,7 @@ class Scene:
         """
         # Objets présents à la fin de l'actualisation de la salle
         objets = []
-
-        for objet in self.salles[self.salle_actuelle]:
+        for objet in self.salles[self.salle_actuelle].copy():
             # On actualise que les objets qui doivent l'être
             if objet.actualiser_:
                 objet.actualiser(self)
@@ -35,7 +34,9 @@ class Scene:
                 objets.append(objet)
                 
         # Assignation des objets de la salle selon ceux qui ont été gardés
-        self.salles[self.salle_actuelle] = objets
+        if not self.salle_changee:
+            self.salles[self.salle_actuelle] = objets
+        self.salle_changee = False
 
     def filtrer(self, etiquette:str, salle:str=None):
         """
@@ -68,6 +69,7 @@ class Scene:
         
     def changer_salle(self, nom:str):
         self.salle_actuelle = nom
+        self.salle_changee = True
     
 
 class Objet:
@@ -97,6 +99,25 @@ class Objet:
         self.vivant = True 
         self.actualiser_ = True
         self.etiquettes = set({})
+        
+    def ajouter_etiquette(self, etiquette:str):
+        # Le nom de cette methode est très explicite
+        self.etiquettes.add(etiquette)
+        
+    def tuer(self):
+        # Celui ci aussi
+        self.vivant = False
 
-    def actualiser(self, scene:Scene): # 'scene' représente la scène depuis laquelle l'objet est actualisé
+    def actualiser(self, scene:Scene):
+        """
+        Cette métode par défaut ne fait rien car elle
+        a vocation a être modifiée au sein des classes
+        qui héritent de la classe Objet.
+        
+        Elle est apelée par la scène si l'objet en question
+        est présent dans la scène courante.
+        
+        La scene entrée en parametre est celle qui apele justement
+        cette méthode.
+        """
         pass
