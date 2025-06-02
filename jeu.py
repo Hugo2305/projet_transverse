@@ -38,9 +38,10 @@ class Jeu:
     def __init__(self):
         # Initialisation classique de pygame
         pygame.init()
+        pygame.mixer.set_num_channels(2000)
         self.ecran_ = pygame.display.set_mode((1280, 720), pygame.SCALED)
         self.horloge = pygame.time.Clock()
-        
+       
         # L'utilisation de deux ecran permet la gestion de l'effet de tremblement
         self.ecran = pygame.Surface((1280, 720))
         
@@ -55,6 +56,7 @@ class Jeu:
         
         # Chargement des ressources
         self.charger_images()
+        self.charger_sons()
         
         TAILLE_BOUTTON = self.images["boutton"].get_size()
 
@@ -64,15 +66,12 @@ class Jeu:
         # Et des salles
         self.scene.nouvelle_salle("menu")
         self.scene.nouvelle_salle("jeu")
-        self.scene.nouvelle_salle("credits")
-        
         # Lien de chaque objet à chaque salle
         self.scene.lier(GestionnaireMenu(self), "menu")
         self.scene.lier(GestionnaireJeu(self), "jeu")
-        self.scene.lier(GestionnaireCredits(self), "credits")
-        self.scene.lier(Boutton(self, (900, 150), TAILLE_BOUTTON, 0), "menu")
-        self.scene.lier(Boutton(self, (900, 350), TAILLE_BOUTTON, 1), "menu")
-        self.scene.lier(Boutton(self, (900, 550), TAILLE_BOUTTON, 2), "menu")
+        self.scene.lier(Boutton(self, (900, 260), TAILLE_BOUTTON, 0), "menu")
+        self.scene.lier(Boutton(self, (900, 500), TAILLE_BOUTTON, 1), "menu")
+        self.scene.lier(Joueur(self, (600, 200)), "jeu")
         
         # On débute le jeu dans le menu
         self.scene.changer_salle("menu")
@@ -102,9 +101,11 @@ class Jeu:
         Boucle du jeu qui s'execute en continu jusqu'à la fin de celui-ci
         """
         while True:
+            self.touches = pygame.key.get_pressed() # Récupère les touches pressées
             self.delta_time()
             self.logique_curseur()
             self.souris_sur_boutton = False
+            self.souris_pressee = False
             
             # Evenements pygame
             for event in pygame.event.get():
@@ -116,6 +117,8 @@ class Jeu:
                     if event.key == pygame.K_F11: 
                         # On met en plein ecran quand F11 est pressé
                         pygame.display.toggle_fullscreen()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.souris_pressee = True
                         
             # Tour de l'horloge du jeu
             self.horloge.tick(1000)
@@ -137,8 +140,21 @@ class Jeu:
         """
         self.images = {
             "fond_menu" : pygame.transform.scale(pygame.image.load("images/fond.png"), (1280, 720)).convert_alpha(),
+            "sol" : pygame.transform.scale(pygame.image.load("images/sol.png"), (1280, 720)).convert_alpha(),
             "boutton" : pygame.image.load("images/boutton.png").convert_alpha(),
-            "logo" : pygame.transform.scale(pygame.image.load("images/logo.png"), (1000, 1000)).convert_alpha()
+            "logo" : pygame.transform.scale(pygame.image.load("images/logo.png"), (1000, 1000)).convert_alpha(),
+            "joueur" : pygame.image.load("images/joueur.png").convert_alpha(),
+            "boule" : pygame.image.load("images/boule.png").convert_alpha(),
+            "ennemi1" : pygame.image.load("images/ennemi1.png").convert_alpha() 
+        }
+        
+    def charger_sons(self):
+        # Même logique que pour le chargement des images
+        self.sons = {
+            "jeu" : pygame.mixer.Sound("sons/jeu.mp3"),
+            "menu" : pygame.mixer.Sound("sons/menu.mp3"),
+            "menu_click" : pygame.mixer.Sound("sons/menu_click.mp3"),
+            "laser" : pygame.mixer.Sound("sons/laser.mp3")
         }
         
     def dessiner(self, surface, position):
@@ -163,6 +179,8 @@ class Jeu:
             # A la moitié de la transition, on change de salle (car l'ecran est completement noir à la mi transition)
             if self.horloge_transition > 0.5:
                 self.scene.changer_salle(self.salle_cible)
+                if self.salle_cible == "jeu":
+                    self.jouer_son("jeu", 0)
             # Si on atteint 1, on arrête la transition
             if self.horloge_transition == 1:
                 self.horloge_transition = -1
@@ -181,12 +199,15 @@ class Jeu:
         # Enfin, on la dessine
         self.dessiner(surface, (0, 0))
         
-    def generer_texte(self, texte:str, police:pygame.font.Font, taille:int,  gras:bool=False, antialias:bool=True, couleur:Tuple[int, int, int]=(0, 0, 0)):
+    def generer_texte(self, texte:str, police:pygame.font.Font, taille:int,  gras:bool=False, antialias:bool=True, couleur:Tuple[int, int, int]=(0, 0, 0), fond=None):
         """
         Permet de générer une surface avec un texte inscrit dessus
         """
         police_ = pygame.font.SysFont(police, taille, gras)
-        return police_.render(texte, antialias, couleur)
+        if fond == None:
+            return police_.render(texte, antialias, couleur)
+        else:
+            return police_.render(texte, antialias, couleur, fond)
         
     def logique_curseur(self):
         """  
@@ -199,10 +220,19 @@ class Jeu:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW) # Curseur classique
             
     def gerer_tremblement(self):
+        # Si la transition est inactive
         if self.horloge_transition == -1:
+            # On affiche le deuxieme ecran dans l'ecran principal à l'origine
             self.ecran_.blit(self.ecran, (0, 0))
         else:
+            # Sinon, on ajoute un décalage aléatoire qui provoque l'effet de tremblement
             self.ecran_.blit(self.ecran, (random.randint(-5, 5), random.randint(-5, 5)))
+        # PS : tout l'affichage du jeu est fait sur le deuxieme ecran "ecran"
+        # qui est ensuite affiché dans l'ecran principal "ecran_"
+        
+    def jouer_son(self, son, channel):
+        pygame.mixer.Channel(channel).play(self.sons[son])
+            
             
 # Démarrage du jeu et de sa boucle.
 Jeu().boucle()
