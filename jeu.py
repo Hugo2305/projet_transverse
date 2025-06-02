@@ -38,6 +38,7 @@ class Jeu:
     def __init__(self):
         # Initialisation classique de pygame
         pygame.init()
+        pygame.mixer.set_num_channels(2000)
         self.ecran_ = pygame.display.set_mode((1280, 720), pygame.SCALED)
         self.horloge = pygame.time.Clock()
        
@@ -65,16 +66,12 @@ class Jeu:
         # Et des salles
         self.scene.nouvelle_salle("menu")
         self.scene.nouvelle_salle("jeu")
-        self.scene.nouvelle_salle("credits")
-        
         # Lien de chaque objet à chaque salle
         self.scene.lier(GestionnaireMenu(self), "menu")
         self.scene.lier(GestionnaireJeu(self), "jeu")
-        self.scene.lier(GestionnaireCredits(self), "credits")
-        self.scene.lier(Boutton(self, (900, 150), TAILLE_BOUTTON, 0), "menu")
-        self.scene.lier(Boutton(self, (900, 350), TAILLE_BOUTTON, 1), "menu")
-        self.scene.lier(Boutton(self, (900, 550), TAILLE_BOUTTON, 2), "menu")
-        self.scene.lier(Joueur(self, (20, 200)), "jeu")
+        self.scene.lier(Boutton(self, (900, 260), TAILLE_BOUTTON, 0), "menu")
+        self.scene.lier(Boutton(self, (900, 500), TAILLE_BOUTTON, 1), "menu")
+        self.scene.lier(Joueur(self, (600, 200)), "jeu")
         
         # On débute le jeu dans le menu
         self.scene.changer_salle("menu")
@@ -147,7 +144,8 @@ class Jeu:
             "boutton" : pygame.image.load("images/boutton.png").convert_alpha(),
             "logo" : pygame.transform.scale(pygame.image.load("images/logo.png"), (1000, 1000)).convert_alpha(),
             "joueur" : pygame.image.load("images/joueur.png").convert_alpha(),
-            "boule" : pygame.image.load("images/boule.png").convert_alpha()
+            "boule" : pygame.image.load("images/boule.png").convert_alpha(),
+            "ennemi1" : pygame.image.load("images/ennemi1.png").convert_alpha() 
         }
         
     def charger_sons(self):
@@ -155,7 +153,8 @@ class Jeu:
         self.sons = {
             "jeu" : pygame.mixer.Sound("sons/jeu.mp3"),
             "menu" : pygame.mixer.Sound("sons/menu.mp3"),
-            "menu_click" : pygame.mixer.Sound("sons/menu_click.mp3")
+            "menu_click" : pygame.mixer.Sound("sons/menu_click.mp3"),
+            "laser" : pygame.mixer.Sound("sons/laser.mp3")
         }
         
     def dessiner(self, surface, position):
@@ -200,12 +199,15 @@ class Jeu:
         # Enfin, on la dessine
         self.dessiner(surface, (0, 0))
         
-    def generer_texte(self, texte:str, police:pygame.font.Font, taille:int,  gras:bool=False, antialias:bool=True, couleur:Tuple[int, int, int]=(0, 0, 0)):
+    def generer_texte(self, texte:str, police:pygame.font.Font, taille:int,  gras:bool=False, antialias:bool=True, couleur:Tuple[int, int, int]=(0, 0, 0), fond=None):
         """
         Permet de générer une surface avec un texte inscrit dessus
         """
         police_ = pygame.font.SysFont(police, taille, gras)
-        return police_.render(texte, antialias, couleur)
+        if fond == None:
+            return police_.render(texte, antialias, couleur)
+        else:
+            return police_.render(texte, antialias, couleur, fond)
         
     def logique_curseur(self):
         """  

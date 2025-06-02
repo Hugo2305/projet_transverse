@@ -23,22 +23,14 @@ class Scene:
         """
         Actualise la salle courante et donc tous les objets qui s'y trouvent
         """
-        # Objets présents à la fin de l'actualisation de la salle
-        objets = []
-        for objet in self.salles[self.salle_actuelle].copy():
-            # On actualise que les objets qui doivent l'être
-            if objet.actualiser_:
-                objet.actualiser(self)
-            # On ne garde que les objets vivants au sein de la salle
-            if objet.vivant:
-                objets.append(objet)
+        # Actualisation des objets
+        for objet in self.salles[self.salle_actuelle]:
+            objet.actualiser(self)
+        
+        # Filtrage des objets de la salle pour ne garder que ceux vivants
+        self.salles[self.salle_actuelle] = list(filter(lambda objet : objet.vivant, self.salles[self.salle_actuelle]))
                 
-        # Assignation des objets de la salle selon ceux qui ont été gardés
-        if not self.salle_changee:
-            self.salles[self.salle_actuelle] = objets
-        self.salle_changee = False
-
-    def filtrer(self, etiquette:str, salle:str=None):
+    def filtrer(self, etiquette:str, salle:str = None): 
         """
         Permet de filtrer les objets présents dans une salle en fonction d'une
         etiquette demandée.
@@ -69,7 +61,6 @@ class Scene:
         
     def changer_salle(self, nom:str):
         self.salle_actuelle = nom
-        self.salle_changee = True
     
 
 class Objet:
@@ -81,7 +72,6 @@ class Objet:
         self.jeu = jeu
         self.z_pos = z_pos
         self.vivant = True 
-        self.actualiser_ = True
         # Les etiquettes sont des textes qui permettent d'identifier les objets
         self.etiquettes = set({})
         
