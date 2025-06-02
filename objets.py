@@ -260,7 +260,7 @@ class Joueur(Entitee):
             self.touche_sol = True
             self.touche_sol_ = True
         # Si on touche le sol et qu'on appuye sur espace
-        if self.touche_sol and self.jeu.touches[pygame.K_SPACE]:
+        if self.touche_sol and (self.jeu.touches[pygame.K_SPACE] or self.jeu.touches[pygame.K_z]):
             # On saute
             self.dy = -30
             # Et le sol n'est plus touché
@@ -297,6 +297,7 @@ class Ennemi1(Entitee):
         self.mort = False
     
     def actualiser(self, scene):
+        global SCORE
         super().actualiser(scene)
         joueur = scene.filtrer("joueur")[0]
         self.rectangle = pygame.Rect(self.x - 50, self.y - 280, 100, 200)
@@ -307,6 +308,8 @@ class Ennemi1(Entitee):
         if self.rectangle.colliderect(joueur.rectangle):
             self.jeu.lancer_transition("menu")
             self.jeu.jouer_son("menu", 0)
+            joueur.balles = 2
+            SCORE = 0
             for objet in scene.salles[scene.salle_actuelle]:
                 if "ennemi1" in objet.etiquettes:
                     objet.tuer()
@@ -329,6 +332,7 @@ class Ennemi1(Entitee):
                 self.mort = True
                 balle.tuer()
                 SCORE += 1
+                
     
     def logique_verticale(self):
         self.dy += 1.2 * self.jeu.dt
